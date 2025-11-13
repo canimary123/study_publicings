@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영상 콘텐츠 승인 대시보드</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Inter 폰트 적용 및 기본 다크 모드 배경 설정 */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* 테이블 스크롤바 스타일링 */
+        .scroll-table::-webkit-scrollbar {
+            width: 8px;
+        }
+        .scroll-table::-webkit-scrollbar-thumb {
+            background-color: #4b5563; /* gray-600 */
+            border-radius: 10px;
+        }
+    </style>
+    <script>
+        // Tailwind 설정 (다크 모드 기본)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-dark': '#111827', // Gray-900
+                        'secondary-dark': '#1f2937', // Gray-800
+                        'accent-green': '#10b981', // Emerald-500
+                        'accent-red': '#ef4444', // Red-500
+                    }
+                }
+            }
+        }
+
+        // 승인 상태 관리를 위한 더미 데이터 및 로직
+        let approvalStatus = '대기 중';
+        let currentVideoId = 'VID-20240901';
+
+        // 상태 업데이트 및 UI 반영 함수
+        function updateStatus(action) {
+            approvalStatus = action === 'approve' ? '승인됨' : '반려됨';
+            const statusDisplay = document.getElementById('statusDisplay');
+            const statusText = document.getElementById('statusText');
+            const statusCard = document.getElementById('statusCard');
+
+            // 상태 텍스트 및 카드 스타일 변경
+            statusText.textContent = approvalStatus;
+
+            if (approvalStatus === '승인됨') {
+                statusCard.classList.remove('bg-yellow-800', 'bg-red-800');
+                statusCard.classList.add('bg-accent-green', 'text-white');
+            } else if (approvalStatus === '반려됨') {
+                statusCard.classList.remove('bg-yellow-800', 'bg-accent-green');
+                statusCard.classList.add('bg-accent-red', 'text-white');
+            } else {
+                 statusCard.classList.remove('bg-accent-green', 'bg-accent-red');
+                 statusCard.classList.add('bg-yellow-800', 'text-white');
+            }
+
+            // 메시지 박스 표시 (alert 대신 사용)
+            showMessageBox(`"${currentVideoId}" 영상이 "${approvalStatus}" 처리되었습니다.`, approvalStatus === '승인됨' ? 'bg-accent-green' : 'bg-accent-red');
+        }
+
+        // 타임스탬프 클릭 시 더미 함수
+        function goToTimestamp(timestamp) {
+            showMessageBox(`영상 플레이어를 ${timestamp}로 이동 시뮬레이션.`, 'bg-indigo-600');
+        }
+
+        // 메시지 박스 구현
+        function showMessageBox(message, bgColor) {
+            const container = document.getElementById('messageContainer');
+            const messageBox = document.createElement('div');
+            messageBox.className = `p-3 mb-2 rounded-lg shadow-xl ${bgColor} text-white transition-opacity duration-300`;
+            messageBox.textContent = message;
+
+            container.prepend(messageBox);
+
+            setTimeout(() => {
+                messageBox.classList.add('opacity-0');
+                messageBox.addEventListener('transitionend', () => messageBox.remove());
+            }, 3000);
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8">
+
+    <!-- 메시지 컨테이너 (Alert 대체) -->
+    <div id="messageContainer" class="fixed top-4 right-4 z-50 w-full max-w-sm">
+        <!-- 메시지 박스가 여기에 삽입됨 -->
+    </div>
+
+    <header class="mb-8 border-b border-gray-700 pb-4">
+        <h1 class="text-3xl font-extrabold text-blue-400">네오스트림 영상 승인 대시보드</h1>
+        <p class="text-gray-400 mt-1">긴급 프로토타입: 콘텐츠 리뷰 및 최종 승인</p>
+    </header>
+
+    <!-- 메인 컨텐츠 영역: 데스크톱 2단 구조, 모바일 수직 구조 -->
+    <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        <!-- 좌측: 영상 플레이어 및 승인 액션 (2/3 영역) -->
+        <section class="md:col-span-2 space-y-6">
+
+            <!-- 영상 플레이어 -->
+            <div class="bg-black aspect-video rounded-xl shadow-2xl overflow-hidden border border-gray-700">
+                <div class="w-full h-full flex items-center justify-center text-gray-400 text-xl font-medium">
+                    <!-- 더미 영상 플레이어 (16:9 비율 유지) -->
+                    [Placeholder Video Player: 16:9]
+                </div>
+            </div>
+
+            <!-- 영상 정보 및 승인 액션 -->
+            <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
+                <h2 class="text-2xl font-bold mb-3 text-blue-300">리뷰 대상: 2024 가을 신제품 런칭 캠페인</h2>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 text-sm text-gray-400">
+                    <p>ID: <span class="font-mono text-gray-200" id="statusDisplay">VID-20240901</span></p>
+                    <p>업로더: 김개발 (마케팅팀)</p>
+                    <p>최종 수정일: 2025.11.12 14:30</p>
+                </div>
+
+                <!-- 현재 상태 표시 카드 -->
+                <div id="statusCard" class="bg-yellow-800 text-white p-3 mb-4 rounded-lg text-center font-bold transition duration-300">
+                    현재 상태: <span id="statusText">대기 중</span>
+                </div>
+
+                <!-- 승인/반려 버튼 -->
+                <div class="flex space-x-4">
+                    <button onclick="updateStatus('approve')" class="flex-1 py-3 bg-accent-green hover:bg-emerald-600 text-white text-lg font-semibold rounded-lg shadow-lg transition duration-200 transform hover:scale-[1.02]">
+                        ✅ 최종 승인 (PUBLISH)
+                    </button>
+                    <button onclick="updateStatus('reject')" class="flex-1 py-3 bg-accent-red hover:bg-red-600 text-white text-lg font-semibold rounded-lg shadow-lg transition duration-200 transform hover:scale-[1.02]">
+                        ❌ 반려 (REJECT)
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- 우측: 타임스탬프 리뷰 (1/3 영역) -->
+        <section class="md:col-span-1 space-y-6">
+            <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 h-96 overflow-y-auto">
+                <h2 class="text-xl font-bold mb-4 text-blue-300">타임스탬프 기반 리뷰</h2>
+
+                <!-- 리뷰 목록 -->
+                <div class="space-y-4">
+                    <!-- 리뷰 1 -->
+                    <div class="border-b border-gray-700 pb-3">
+                        <p class="text-sm font-semibold text-gray-300">디자인팀 / 이디자인</p>
+                        <p class="text-base mt-1">제품 로고가 너무 빨리 사라집니다. <a href="#" onclick="goToTimestamp('00:08')" class="text-yellow-400 hover:text-yellow-300 font-medium">[00:08]</a>에서 최소 1초 더 유지해야 합니다.</p>
+                    </div>
+                    <!-- 리뷰 2 -->
+                    <div class="border-b border-gray-700 pb-3">
+                        <p class="text-sm font-semibold text-gray-300">운영팀 / 박운영</p>
+                        <p class="text-base mt-1">BGM이 너무 격렬합니다. 톤을 조금 더 차분하게 바꿔주세요. <a href="#" onclick="goToTimestamp('00:35')" class="text-yellow-400 hover:text-yellow-300 font-medium">[00:35]</a> 부분부터 특히 그렇습니다.</p>
+                    </div>
+                    <!-- 리뷰 3 -->
+                    <div class="border-b border-gray-700 pb-3">
+                        <p class="text-sm font-semibold text-gray-300">마케팅팀 / 최마케</p>
+                        <p class="text-base mt-1">마지막 CTA가 잘 안보여요. <a href="#" onclick="goToTimestamp('01:55')" class="text-yellow-400 hover:text-yellow-300 font-medium">[01:55]</a>에 폰트 크기를 키워야 합니다.</p>
+                    </div>
+                    <!-- 리뷰 4 (더미) -->
+                     <div class="border-b border-gray-700 pb-3">
+                        <p class="text-sm font-semibold text-gray-300">경영지원팀 / 오대표</p>
+                        <p class="text-base mt-1">이 영상 컨셉 아주 좋습니다. 고생하셨습니다! <a href="#" onclick="goToTimestamp('00:01')" class="text-yellow-400 hover:text-yellow-300 font-medium">[00:01]</a></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 하단: 데이터 밀집형 승인 대기 영상 목록 (운영팀 요구사항) -->
+    <section class="mt-8">
+        <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
+            <h2 class="text-xl font-bold mb-4 text-blue-300">승인 대기열 목록 (데이터 밀집형)</h2>
+
+            <!-- 스크롤 가능한 테이블 컨테이너 -->
+            <div class="overflow-x-auto scroll-table max-h-80 overflow-y-auto">
+                <table class="min-w-full text-sm divide-y divide-gray-700">
+                    <thead class="bg-gray-700 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">제목</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">업로더</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">길이</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">상태</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">액션</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800">
+                        <!-- 더미 데이터 행 1 -->
+                        <tr class="hover:bg-gray-700 cursor-pointer">
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">VID-20240902</td>
+                            <td class="px-4 py-3 whitespace-nowrap font-medium text-blue-300">겨울 시즌 한정판 프로모</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">마케팅팀</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">03:45</td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-400 text-yellow-900">대기</span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <a href="#" class="text-indigo-400 hover:text-indigo-300">리뷰</a>
+                            </td>
+                        </tr>
+                         <!-- 현재 영상 (강조) -->
+                        <tr class="bg-gray-700/50">
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300 font-bold">VID-20240901</td>
+                            <td class="px-4 py-3 whitespace-nowrap font-bold text-emerald-400">2024 가을 신제품 런칭 캠페인</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">김개발</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">02:00</td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-400 text-blue-900">진행 중</span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <a href="#" class="text-indigo-400 hover:text-indigo-300">현재</a>
+                            </td>
+                        </tr>
+                        <!-- 더미 데이터 행 3~10 -->
+                        <tr class="hover:bg-gray-700 cursor-pointer">
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">VID-20240825</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">신규 구독자 유입 전략</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">콘텐츠팀</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">01:10</td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-400 text-yellow-900">대기</span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <a href="#" class="text-indigo-400 hover:text-indigo-300">리뷰</a>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-700 cursor-pointer">
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">VID-20240820</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">지난주 인기 콘텐츠 분석</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">데이터팀</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">05:00</td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-500 text-gray-100">완료</span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <a href="#" class="text-indigo-400 hover:text-indigo-300">보기</a>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-700 cursor-pointer">
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">VID-20240815</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">추석 명절 특집 콘텐츠</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">기획팀</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">01:30</td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-400 text-yellow-900">대기</span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <a href="#" class="text-indigo-400 hover:text-indigo-300">리뷰</a>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-700 cursor-pointer">
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">VID-20240810</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">여름 휴가 브이로그</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">운영팀</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">04:10</td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-500 text-gray-100">완료</span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <a href="#" class="text-indigo-400 hover:text-indigo-300">보기</a>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-700 cursor-pointer">
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">VID-20240805</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">Q&A 라이브 예고편</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">콘텐츠팀</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">00:50</td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-400 text-yellow-900">대기</span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <a href="#" class="text-indigo-400 hover:text-indigo-300">리뷰</a>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-700 cursor-pointer">
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">VID-20240730</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-300">기업 비전 소개 영상</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">경영지원팀</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-gray-400">07:00</td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-500 text-gray-100">완료</span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <a href="#" class="text-indigo-400 hover:text-indigo-300">보기</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
